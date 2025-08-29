@@ -7,9 +7,7 @@ pub use crate::csvwrite::csvwriteops::CsvWriteOptions;
 //====== postgres
 pub use crate::features::postgres::PostgresConfig;
 pub use crate::features::postgres::PostgresConnection;
-//========= mysql
-pub use crate::features::mysql::MySqlConfig;
-pub use crate::features::mysql::MySqlConnection;
+ 
 //====== dashboard
 pub use crate::{ReportLayout, TableOptions};
 
@@ -133,22 +131,13 @@ pub struct RangeSlider;
 // STATISTICS
 pub use datafusion::common::ScalarValue;
 
-// ========== AZURE
-#[cfg(feature = "azure")]
-pub use azure_storage_blobs::prelude::*;
-#[cfg(feature = "azure")]
-pub use azure_storage::StorageCredentials;
-#[cfg(feature = "azure")]
-pub use azure_storage::CloudLocation;
 pub use futures::stream;
 pub use std::io::{BufReader,BufRead};
 pub use futures::pin_mut;
 pub use csv::ReaderBuilder;
 pub use csv::Trim::All;
 pub use serde_json::Deserializer;
-// ==== pisanje
-#[cfg(feature = "azure")]
-pub use azure_storage_blobs::blob::{BlockList, BlobBlockType};
+// ==== parquet writer
 pub use bytes::Bytes;
 pub use datafusion::parquet::basic::Compression;
 pub use datafusion::parquet::file::properties::{WriterProperties, WriterVersion};
@@ -162,16 +151,7 @@ pub use tempfile::Builder;
 pub use std::future::Future;
 pub use tokio_cron_scheduler::{JobScheduler, Job};
 
-// ======== From API
-#[cfg(feature = "api")]
-pub use reqwest::Client;
-#[cfg(feature = "api")]
-pub use urlencoding::encode;
-
-pub use crate::features::api::ElusionApi;
-
-#[cfg(not(feature = "api"))]
-pub struct Client;
+ 
 
 
 // ========= VIEWS and CAche
@@ -195,11 +175,7 @@ pub use arrow::array::{Int8Array, Int16Array,UInt8Array, UInt16Array};
 pub use calamine::DataType as CalamineDataType;
 pub use calamine::{Reader, Xlsx, open_workbook};
 
-//========== SHARE POINT
-#[cfg(feature = "sharepoint")]
-pub use reqwest;
-#[cfg(feature = "sharepoint")]
-pub use url;
+ 
 
 // ------ OPTIMIZATIONS
 pub use std::borrow::Cow;
@@ -210,18 +186,5 @@ pub use arrow::util::display::array_value_to_string as any_other_array_value_to_
 pub use datafusion::physical_plan::SendableRecordBatchStream;
 pub use arrow::util::pretty::pretty_format_batches;
 
-//====== REDIS
-pub use crate::features::redis::{
-    RedisCacheConfig,
-    RedisCacheConnection,
-    RedisCacheStats,
-    create_redis_cache_connection,
-    create_redis_cache_connection_with_config,
-    elusion_with_redis_cache_impl,
-    clear_redis_cache_impl,
-    get_redis_cache_stats_impl,
-    invalidate_redis_cache_impl,
-};
-
-pub use redis::{Client as RedisClient, Connection as RedisConnection, TypedCommands};
+ 
 pub use serde_json;

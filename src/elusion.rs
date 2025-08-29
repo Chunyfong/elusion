@@ -83,8 +83,6 @@ use chrono::Weekday;
 //=========POSTGRESS
 use crate::features::postgres::PostgresConnection;
 
-//================ MYSQL
-use crate::features::mysql::MySqlConnection;
 
 //============ helper funcs
 use crate::helper_funcs::registertable::register_df_as_table;
@@ -122,21 +120,12 @@ use futures::StreamExt;
 use crate::features::csv::load_csv_smart;
 use arrow::util::pretty::pretty_format_batches;
 
-//cache redis
-use crate::features::redis::RedisCacheConnection;
-use crate::features::redis::RedisCacheStats;
-use crate::features::redis::clear_redis_cache_impl;
-use crate::features::redis::create_redis_cache_connection;
-use crate::features::redis::create_redis_cache_connection_with_config;
-use crate::features::redis::elusion_with_redis_cache_impl;
-use crate::features::redis::get_redis_cache_stats_impl;
-use crate::features::redis::invalidate_redis_cache_impl;
+ 
 
 
 // ===== struct to manage ODBC DB connections
 #[derive(Debug, PartialEq, Clone)]
 pub enum DatabaseType {
-    MySQL,
     PostgreSQL,
     MongoDB,
     SQLServer,
@@ -569,146 +558,8 @@ impl CustomDataFrame {
       }
 
 
-    // ========== REDIS CACHE
-    /// Cashing query result to Redis
-    pub async fn elusion_with_redis_cache(
-        &self, 
-        redis_conn: &RedisCacheConnection,
-        alias: &str,
-        ttl_seconds: Option<u64>
-    ) -> ElusionResult<Self> {
-        elusion_with_redis_cache_impl(self, redis_conn, alias, ttl_seconds).await
-    }
-
-    /// Clear Redis cache for specific patterns
-    pub async fn clear_redis_cache(
-        redis_conn: &RedisCacheConnection,
-        pattern: Option<&str>
-    ) -> ElusionResult<()> {
-        clear_redis_cache_impl(redis_conn, pattern).await
-    }
 
 
-    /// Get Redis cache statistics
-    pub async fn redis_cache_stats(
-        redis_conn: &RedisCacheConnection
-    ) -> ElusionResult<RedisCacheStats> {
-        get_redis_cache_stats_impl(redis_conn).await
-    }
-
-    /// Invalidate Redis cache by pattern
-    pub async fn invalidate_redis_cache(
-        redis_conn: &RedisCacheConnection,
-        table_names: &[&str]
-    ) -> ElusionResult<()> {
-        invalidate_redis_cache_impl(redis_conn, table_names).await
-    }
-
-    /// Convinient funciton to create Redis cache connection
-    pub async fn create_redis_cache_connection() -> ElusionResult<RedisCacheConnection> {
-        create_redis_cache_connection().await
-    }
-
-    /// Convinient funciton to create Redis cache connection with configurations
-    pub async fn create_redis_cache_connection_with_config(
-        host: &str,
-        port: u16,
-        password: Option<&str>,
-        database: Option<u8>,
-    ) -> ElusionResult<RedisCacheConnection> {
-        create_redis_cache_connection_with_config(host, port, password, database).await
-    }
-
-
-    //=========== SHARE POINT
-    #[cfg(feature = "sharepoint")]
-    pub async fn load_from_sharepoint(
-        tenant_id: &str,
-        client_id: &str,
-        site_url: &str,
-        file_path: &str,
-        alias: &str,
-    ) -> ElusionResult<Self> {
-        crate::features::sharepoint::load_from_sharepoint_impl(
-            tenant_id, client_id, site_url, file_path, alias
-        ).await
-    }
-
-    #[cfg(not(feature = "sharepoint"))]
-    pub async fn load_from_sharepoint(
-        _tenant_id: &str,
-        _client_id: &str,
-        _site_url: &str,
-        _file_path: &str,
-        _alias: &str,
-    ) -> ElusionResult<Self> {
-        Err(ElusionError::InvalidOperation {
-            operation: "SharePoint File Loading".to_string(),
-            reason: "SharePoint feature not enabled".to_string(),
-            suggestion: "💡 Add 'sharepoint' to your features: features = [\"sharepoint\"]".to_string(),
-        })
-    }
-
-    #[cfg(feature = "sharepoint")]
-    pub async fn load_folder_from_sharepoint(
-        tenant_id: &str,
-        client_id: &str,
-        site_url: &str,
-        folder_path: &str,
-        file_extensions: Option<Vec<&str>>,
-        result_alias: &str,
-    ) -> ElusionResult<Self> {
-        crate::features::sharepoint::load_folder_from_sharepoint_impl(
-            tenant_id, client_id, site_url, folder_path, file_extensions, result_alias
-        ).await
-    }
-
-    #[cfg(not(feature = "sharepoint"))]
-    pub async fn load_folder_from_sharepoint(
-        _tenant_id: &str, 
-        _client_id: &str, 
-        _site_url: &str, 
-        _folder_path: &str,
-        _file_extensions: Option<Vec<&str>>,
-        _result_alias: &str,
-    ) -> ElusionResult<Self> {
-        Err(ElusionError::InvalidOperation {
-            operation: "SharePoint Folder Loading".to_string(),
-            reason: "SharePoint feature not enabled".to_string(),
-            suggestion: "💡 Add 'sharepoint' to your features: features = [\"sharepoint\"]".to_string(),
-        })
-    }
-
-    #[cfg(feature = "sharepoint")]
-    pub async fn load_folder_from_sharepoint_with_filename_column(
-        tenant_id: &str,
-        client_id: &str,
-        site_url: &str,
-        folder_path: &str,
-        file_extensions: Option<Vec<&str>>,
-        result_alias: &str,
-    ) -> ElusionResult<Self> {
-        crate::features::sharepoint::load_folder_from_sharepoint_with_filename_column_impl(
-            tenant_id, client_id, site_url, folder_path, file_extensions, result_alias
-        ).await
-    }
-
-    #[cfg(not(feature = "sharepoint"))]
-    pub async fn load_folder_from_sharepoint_with_filename_column(
-        _tenant_id: &str, 
-        _client_id: &str, 
-        _site_url: &str, 
-        _folder_path: &str,
-        _file_extensions: Option<Vec<&str>>,
-        _result_alias: &str,
-    ) -> ElusionResult<Self> {
-        Err(ElusionError::InvalidOperation {
-            operation: "SharePoint Folder Loading with Filename".to_string(),
-            reason: "SharePoint feature not enabled".to_string(),
-            suggestion: "💡 Add 'sharepoint' to your features: features = [\"sharepoint\"]".to_string(),
-        })
-    }
-  
     
     // ====== POSTGRESS
 
@@ -730,24 +581,7 @@ impl CustomDataFrame {
         Err(ElusionError::Custom("*** Warning ***: Postgres feature not enabled. Add feature under [dependencies]".to_string()))
     }
 
-    // ========== MYSQL ============
-   #[cfg(feature = "mysql")]
-    pub async fn from_mysql(
-        conn: &MySqlConnection,
-        query: &str,
-        alias: &str
-    ) -> ElusionResult<Self> {
-        crate::features::mysql::from_mysql_impl(conn, query, alias).await
-    }
-
-    #[cfg(not(feature = "mysql"))]
-    pub async fn from_mysql(
-        _conn: &MySqlConnection,
-        _query: &str,
-        _alias: &str
-    ) -> ElusionResult<Self> {
-        Err(ElusionError::Custom("*** Warning ***: MySQL feature not enabled. Add feature = [\"mysql\"] under [dependencies]".to_string()))
-    }
+    
 
     // ==================== DATAFRAME Methods ====================
 
@@ -5351,67 +5185,7 @@ impl CustomDataFrame {
     ) -> ElusionResult<()> {
         Err(ElusionError::Custom("*** Warning ***: Excel feature not enabled. Add feature excel under [dependencies]".to_string()))
     }
-    // ============== AZURE WRITING ======================
-    #[cfg(feature = "azure")]
-    pub async fn write_parquet_to_azure_with_sas(
-        &self,
-        mode: &str,
-        url: &str,
-        sas_token: &str,
-    ) -> ElusionResult<()> {
-        crate::features::azure::write_parquet_to_azure_with_sas_impl(self, mode, url, sas_token).await
-    }
-
-    #[cfg(not(feature = "azure"))]
-    pub async fn write_parquet_to_azure_with_sas(
-        &self,
-        _mode: &str,
-        _url: &str,
-        _sas_token: &str,
-    ) -> ElusionResult<()> {
-        Err(ElusionError::Custom("*** Warning ***: Azure feature not enabled. Add feature under [dependencies]".to_string()))
-    }
-
-    #[cfg(feature = "azure")]
-    pub async fn write_json_to_azure_with_sas(
-        &self,
-        url: &str,
-        sas_token: &str,
-        pretty: bool,
-    ) -> ElusionResult<()> {
-        crate::features::azure::write_json_to_azure_with_sas_impl(self, url, sas_token, pretty).await
-    }
-
-    #[cfg(not(feature = "azure"))]
-    pub async fn write_json_to_azure_with_sas(
-        &self,
-        _url: &str,
-        _sas_token: &str,
-        _pretty: bool,
-    ) -> ElusionResult<()> {
-        Err(ElusionError::Custom("*** Warning ***: Azure feature not enabled. Add feature under [dependencies]".to_string()))
-    }
-
-     // ============== AZURE READING ======================
-    #[cfg(feature = "azure")]
-    pub async fn from_azure_with_sas_token(
-        url: &str,
-        sas_token: &str,
-        filter_keyword: Option<&str>, 
-        alias: &str,
-    ) -> ElusionResult<Self> {
-        crate::features::azure::from_azure_with_sas_token_impl(url, sas_token, filter_keyword, alias).await
-    }
-
-    #[cfg(not(feature = "azure"))]
-    pub async fn from_azure_with_sas_token(
-        _url: &str,
-        _sas_token: &str,
-        _filter_keyword: Option<&str>, 
-        _alias: &str,
-    ) -> ElusionResult<Self> {
-        Err(ElusionError::Custom("*** Warning ***: Azure feature not enabled. Add feature under [dependencies]".to_string()))
-    }
+    
 
     //=================== LOCAL LOADERS ============================= //
 
