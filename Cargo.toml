@@ -1,22 +1,21 @@
 [package]
-name = "elusion"
-version = "6.0.0"
+name = "elusion-lite"
+version = "0.1.0"
 edition = "2021"
 authors = ["Borivoj Grujicic <borivoj.grujicic@gmail.com>"]
-description = "Elusion is a modern DataFrame / Data Engineering / Data Analysis library that combines the familiarity of DataFrame operations (like those in PySpark, Pandas, and Polars) with the power of SQL query building. It provides flexible query construction without enforcing strict operation ordering, enabling developers to write intuitive and maintainable data transformations."
+description = "Elusion fork"
 license = "MIT"
 repository = "https://github.com/DataBora/elusion"
 homepage = "https://github.com/DataBora/elusion"
-documentation = "https://docs.rs/elusion"
 readme = "README.md"
 keywords = ["data", "engineering", "dataframe", "analysis"]
 categories = ["data-structures"]
 
 [dependencies]
 datafusion = "43.0.0"
-# 僅啟用本機檔案系統，避免雲端/HTTP 相依
+# 
 object_store = { version = "0.11.2", default-features = false }
-# 關閉預設雲端整合（S3/Azure/GCS 等）
+# 
 deltalake = { version = "0.23.0", default-features = false }
 arrow = { version = "53.2.0", features = ["ipc"] }
 chrono = { version = "=0.4.38", features = ["serde"] }
